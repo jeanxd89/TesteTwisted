@@ -1,1 +1,605 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roleta Twisted - Jogo Divertido</title>
+    <style>
+        :root {
+            --primary: #ff4081;
+            --secondary: #7c4dff;
+            --accent: #18ffff;
+            --dark: #212121;
+            --light: #f5f5f5;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark), #424242);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(255, 64, 129, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+        
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .wheel-container {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .wheel {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #ff4081 0deg 60deg,
+                #7c4dff 60deg 120deg,
+                #18ffff 120deg 180deg,
+                #ff4081 180deg 240deg,
+                #7c4dff 240deg 300deg,
+                #18ffff 300deg 360deg
+            );
+            position: relative;
+            margin: 20px 0;
+            transition: transform 3s cubic-bezier(0.2, 0.8, 0.3, 1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .wheel::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: var(--light);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+        
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 40px;
+            background: var(--light);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            z-index: 3;
+        }
+        
+        .wheel-section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom right;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--dark);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .info-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .tab-container {
+            margin-top: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid var(--accent);
+            color: var(--accent);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .result-display {
+            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .result-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+        
+        .result-description {
+            font-size: 1rem;
+            color: var(--light);
+        }
+        
+        .history {
+            margin-top: 20px;
+        }
+        
+        .history-list {
+            list-style-type: none;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .history-list li {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .history-list li:nth-child(odd) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        h2 {
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+        
+        h3 {
+            margin: 15px 0 10px;
+            color: var(--primary);
+        }
+        
+        ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .players {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .player {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .player.active {
+            box-shadow: 0 0 0 3px var(--accent);
+        }
+        
+        .player-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .player-score {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spinning {
+            animation: spin 0.5s linear infinite;
+        }
+        
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ROULETTE TWISTED</h1>
+            <p class="subtitle">O jogo mais divertido e imprevisível para suas festas!</p>
+        </header>
+        
+        <div class="game-area">
+            <div class="wheel-container">
+                <h2>RODADA ATUAL</h2>
+                <div class="wheel" id="wheel">
+                    <div class="pointer"></div>
+                    <div class="wheel-section" style="transform: rotate(0deg);">Pé Direito</div>
+                    <div class="wheel-section" style="transform: rotate(60deg);">Mão Direita</div>
+                    <div class="wheel-section" style="transform: rotate(120deg);">Pé Esquerdo</div>
+                    <div class="wheel-section" style="transform: rotate(180deg);">Mão Esquerda</div>
+                    <div class="wheel-section" style="transform: rotate(240deg);">Twist</div>
+                    <div class="wheel-section" style="transform: rotate(300deg);">Desafio</div>
+                </div>
+                
+                <div class="controls">
+                    <button id="spin-btn">GIRAR ROLETA</button>
+                    <button id="reset-btn">REINICIAR JOGO</button>
+                </div>
+                
+                <div class="result-display">
+                    <div class="result-text" id="result-text">Aguardando giro...</div>
+                    <div class="result-description" id="result-description">Clique em "GIRAR ROLETA" para começar!</div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h2>INFORMAÇÕES DO JOGO</h2>
+                
+                <div class="tab-container">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="rules">Regras</div>
+                        <div class="tab" data-tab="commands">Comandos</div>
+                        <div class="tab" data-tab="players">Jogadores</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="rules-content">
+                        <h3>Como Jogar:</h3>
+                        <ul>
+                            <li>Cada jogador gira a roleta por vez</li>
+                            <li>O resultado determina a ação a ser realizada</li>
+                            <li>O jogo continua até que um jogador atinja 10 pontos</li>
+                        </ul>
+                        
+                        <h3>Resultados da Roleta:</h3>
+                        <ul>
+                            <li><strong>Pé Direito:</strong> Realize uma ação usando apenas o pé direito</li>
+                            <li><strong>Mão Direita:</strong> Realize uma ação usando apenas a mão direita</li>
+                            <li><strong>Pé Esquerdo:</strong> Realize uma ação usando apenas o pé esquerdo</li>
+                            <li><strong>Mão Esquerda:</strong> Realize uma ação usando apenas a mão esquerda</li>
+                            <li><strong>Twist:</strong> Realize a ação de forma engraçada ou criativa</li>
+                            <li><strong>Desafio:</strong> Complete um desafio especial determinado pelo grupo</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tab-content" id="commands-content">
+                        <h3>Comandos do Jogo:</h3>
+                        <ul>
+                            <li><strong>GIRAR ROLETA:</strong> Inicia o giro da roleta</li>
+                            <li><strong>REINICIAR JOGO:</strong> Zera todas as pontuações e recomeça o jogo</li>
+                            <li><strong>ADICIONAR JOGADOR:</strong> Adiciona um novo jogador à partida</li>
+                            <li><strong>REMOVER JOGADOR:</strong> Remove o último jogador adicionado</li>
+                        </ul>
+                        
+                        <h3>Pontuação:</h3>
+                        <ul>
+                            <li>Cada ação realizada com sucesso: +1 ponto</li>
+                            <li>Ação realizada de forma excepcional: +2 pontos</li>
+                            <li>Falha na realização da ação: 0 pontos</li>
+                            <li>Primeiro jogador a atingir 10 pontos vence a rodada!</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tab-content" id="players-content">
+                        <h3>Jogadores Atuais:</h3>
+                        <div class="players" id="players-list">
+                            <!-- Jogadores serão adicionados dinamicamente -->
+                        </div>
+                        <div class="controls">
+                            <button id="add-player">ADICIONAR JOGADOR</button>
+                            <button id="remove-player">REMOVER JOGADOR</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="history">
+                    <h3>Histórico de Jogadas</h3>
+                    <ul class="history-list" id="history-list">
+                        <!-- Histórico será preenchido dinamicamente -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos do DOM
+            const wheel = document.getElementById('wheel');
+            const spinBtn = document.getElementById('spin-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const resultText = document.getElementById('result-text');
+            const resultDescription = document.getElementById('result-description');
+            const historyList = document.getElementById('history-list');
+            const playersList = document.getElementById('players-list');
+            const addPlayerBtn = document.getElementById('add-player');
+            const removePlayerBtn = document.getElementById('remove-player');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Variáveis do jogo
+            let isSpinning = false;
+            let playerCount = 0;
+            let currentPlayer = 0;
+            let players = [];
+            let spinCount = 0;
+            
+            // Resultados possíveis
+            const results = [
+                { name: "PÉ DIREITO", description: "Realize uma ação usando apenas o pé direito!" },
+                { name: "MÃO DIREITA", description: "Realize uma ação usando apenas a mão direita!" },
+                { name: "PÉ ESQUERDO", description: "Realize uma ação usando apenas o pé esquerdo!" },
+                { name: "MÃO ESQUERDA", description: "Realize uma ação usando apenas a mão esquerda!" },
+                { name: "TWIST", description: "Realize a ação de forma engraçada ou criativa!" },
+                { name: "DESAFIO", description: "Complete um desafio especial determinado pelo grupo!" }
+            ];
+            
+            // Inicializar jogo
+            initializeGame();
+            
+            // Event Listeners
+            spinBtn.addEventListener('click', spinWheel);
+            resetBtn.addEventListener('click', resetGame);
+            addPlayerBtn.addEventListener('click', addPlayer);
+            removePlayerBtn.addEventListener('click', removePlayer);
+            
+            // Tabs
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Remover classe active de todas as tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    
+                    // Adicionar classe active à tab clicada
+                    tab.classList.add('active');
+                    document.getElementById(`${tabId}-content`).classList.add('active');
+                });
+            });
+            
+            // Funções do jogo
+            function initializeGame() {
+                // Adicionar dois jogadores iniciais
+                addPlayer();
+                addPlayer();
+            }
+            
+            function spinWheel() {
+                if (isSpinning) return;
+                
+                if (players.length === 0) {
+                    alert("Adicione pelo menos um jogador antes de começar!");
+                    return;
+                }
+                
+                isSpinning = true;
+                spinBtn.disabled = true;
+                
+                // Efeito visual de giro
+                wheel.classList.add('spinning');
+                
+                // Gerar resultado aleatório após um tempo
+                setTimeout(() => {
+                    const randomDegree = 1080 + Math.floor(Math.random() * 360); // Giro completo + aleatório
+                    wheel.style.transform = `rotate(${randomDegree}deg)`;
+                    
+                    // Calcular resultado baseado no ângulo
+                    const normalizedDegree = randomDegree % 360;
+                    const resultIndex = Math.floor(normalizedDegree / 60);
+                    const result = results[resultIndex];
+                    
+                    // Remover efeito de giro
+                    wheel.classList.remove('spinning');
+                    
+                    // Exibir resultado após a animação
+                    setTimeout(() => {
+                        resultText.textContent = result.name;
+                        resultDescription.textContent = result.description;
+                        
+                        // Adicionar ao histórico
+                        addToHistory(players[currentPlayer].name, result.name);
+                        
+                        // Atualizar jogador atual
+                        updateCurrentPlayer();
+                        
+                        isSpinning = false;
+                        spinBtn.disabled = false;
+                        spinCount++;
+                    }, 500);
+                }, 2000);
+            }
+            
+            function resetGame() {
+                if (confirm("Tem certeza que deseja reiniciar o jogo? Todas as pontuações serão perdidas.")) {
+                    players.forEach(player => {
+                        player.score = 0;
+                    });
+                    currentPlayer = 0;
+                    spinCount = 0;
+                    historyList.innerHTML = '';
+                    resultText.textContent = "Aguardando giro...";
+                    resultDescription.textContent = "Clique em 'GIRAR ROLETA' para começar!";
+                    wheel.style.transform = 'rotate(0deg)';
+                    updatePlayersDisplay();
+                }
+            }
+            
+            function addPlayer() {
+                playerCount++;
+                const playerName = `Jogador ${playerCount}`;
+                players.push({
+                    id: playerCount,
+                    name: playerName,
+                    score: 0
+                });
+                updatePlayersDisplay();
+            }
+            
+            function removePlayer() {
+                if (players.length > 0) {
+                    players.pop();
+                    playerCount = players.length;
+                    if (currentPlayer >= players.length) {
+                        currentPlayer = 0;
+                    }
+                    updatePlayersDisplay();
+                }
+            }
+            
+            function updatePlayersDisplay() {
+                playersList.innerHTML = '';
+                players.forEach((player, index) => {
+                    const playerElement = document.createElement('div');
+                    playerElement.className = `player ${index === currentPlayer ? 'active' : ''}`;
+                    playerElement.innerHTML = `
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-score">${player.score}</div>
+                    `;
+                    playersList.appendChild(playerElement);
+                });
+            }
+            
+            function updateCurrentPlayer() {
+                // Adicionar ponto ao jogador atual
+                players[currentPlayer].score += 1;
+                
+                // Verificar se alguém ganhou
+                if (players[currentPlayer].score >= 10) {
+                    resultText.textContent = "VITÓRIA!";
+                    resultDescription.textContent = `${players[currentPlayer].name} venceu o jogo!`;
+                    spinBtn.disabled = true;
+                    return;
+                }
+                
+                // Próximo jogador
+                currentPlayer = (currentPlayer + 1) % players.length;
+                updatePlayersDisplay();
+            }
+            
+            function addToHistory(playerName, result) {
+                const historyItem = document.createElement('li');
+                historyItem.textContent = `${playerName}: ${result}`;
+                historyList.prepend(historyItem);
+                
+                // Manter apenas os últimos 10 itens no histórico
+                if (historyList.children.length > 10) {
+                    historyList.removeChild(historyList.lastChild);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
